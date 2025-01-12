@@ -1,0 +1,234 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>CDP Documentation Chatbot</title>
+    <style>
+        body {
+            font-family: 'Arial', sans-serif;
+            margin: 0;
+            padding: 0;
+            background-color: #f3f4f6;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            height: 100vh;
+            overflow: hidden;
+        }
+
+        .chat-container {
+            width: 100%;
+            max-width: 500px;
+            background: #fff;
+            box-shadow: 0px 4px 10px rgba(0, 0, 0, 0.1);
+            border-radius: 10px;
+            overflow: hidden;
+            transform: translateY(100%);
+            transition: all 0.6s ease;
+        }
+
+        .chat-container.loaded {
+            transform: translateY(0);
+        }
+
+        .chat-header {
+            background: #007BFF;
+            color: #fff;
+            padding: 15px;
+            text-align: center;
+            font-size: 18px;
+            font-weight: bold;
+        }
+
+        .chat-body {
+            padding: 20px;
+            overflow-y: auto;
+            max-height: 400px;
+        }
+
+        form {
+            display: flex;
+            flex-direction: column;
+            gap: 10px;
+            margin-bottom: 20px;
+        }
+
+        label {
+            font-weight: bold;
+            font-size: 14px;
+            color: #333;
+        }
+
+        input, select {
+            padding: 10px;
+            font-size: 14px;
+            border: 1px solid #ddd;
+            border-radius: 5px;
+            outline: none;
+            transition: all 0.3s ease;
+        }
+
+        input:focus, select:focus {
+            border-color: #007BFF;
+            box-shadow: 0px 0px 5px rgba(0, 123, 255, 0.3);
+        }
+
+        button {
+            padding: 10px 15px;
+            font-size: 14px;
+            color: #fff;
+            background-color: #007BFF;
+            border: none;
+            border-radius: 5px;
+            cursor: pointer;
+            transition: all 0.3s ease;
+        }
+
+        button:hover {
+            background-color: #0056b3;
+        }
+
+        #response {
+            padding: 15px;
+            background: #f9f9f9;
+            border-radius: 5px;
+            box-shadow: 0px 2px 5px rgba(0, 0, 0, 0.1);
+            margin-top: 20px;
+            opacity: 0;
+            transform: translateY(20px);
+            transition: all 0.4s ease;
+        }
+
+        #response.visible {
+            opacity: 1;
+            transform: translateY(0);
+        }
+
+        #response h3 {
+            color: #333;
+        }
+
+        #response p {
+            font-size: 14px;
+            color: #555;
+        }
+
+        #response a {
+            color: #007BFF;
+            text-decoration: none;
+        }
+
+        #response a:hover {
+            text-decoration: underline;
+        }
+
+        #loading {
+            position: absolute;
+            top: 50%;
+            left: 50%;
+            transform: translate(-50%, -50%);
+            font-size: 20px;
+            color: #007BFF;
+            opacity: 0;
+            transition: opacity 0.5s ease;
+        }
+
+        #loading.visible {
+            opacity: 1;
+        }
+
+    </style>
+</head>
+<body>
+    <div class="chat-container" id="chatContainer">
+        <div class="chat-header">
+            CDP Documentation Chatbot
+        </div>
+        <div class="chat-body">
+            <form id="queryForm" style="display: none;">
+                <label for="queryInput">Enter your query:</label>
+                <input type="text" id="queryInput" name="query" required placeholder="e.g., How to create a user profile in mParticle?">
+                
+                <label for="cdpSelect">Select CDP:</label>
+                <select id="cdpSelect" name="cdp">
+                    <option value="segment">Segment</option>
+                    <option value="mparticle">mParticle</option>
+                    <option value="lytics">Lytics</option>
+                    <option value="zeotap">Zeotap</option>
+                </select>
+                
+                <button type="submit">Submit</button>
+            </form>
+            <div id="response">
+                <p>Response will appear here...</p>
+            </div>
+        </div>
+    </div>
+
+    <div id="loading" class="visible">
+        Loading, please wait for 5 minutes while the documents are indexed...
+    </div>
+
+    <script>
+        const form = document.getElementById("queryForm");
+        const responseDiv = document.getElementById("response");
+        const chatContainer = document.getElementById("chatContainer");
+        const loadingDiv = document.getElementById("loading");
+
+        window.addEventListener('load', async () => {
+            // Simulate indexing process with a delay
+            await simulateIndexing();
+
+            // After indexing, show the form and hide the loading message
+            loadingDiv.classList.remove("visible");
+            form.style.display = "flex";
+            chatContainer.classList.add("loaded");
+        });
+
+        form.addEventListener("submit", async (event) => {
+            event.preventDefault();
+
+            const query = document.getElementById("queryInput").value;
+            const cdp = document.getElementById("cdpSelect").value;
+
+            responseDiv.classList.remove("visible");
+            responseDiv.innerHTML = `<p>Fetching response...</p>`;
+
+            try {
+                const response = await fetch("http://127.0.0.1:8000/query/", {
+                    method: "POST",
+                    headers: { "Content-Type": "application/json" },
+                    body: JSON.stringify({ query, cdp }),
+                });
+
+                const data = await response.json();
+                const res = data.response;
+
+                if (res.title) {
+                    responseDiv.innerHTML = `
+                        <h3>${res.title}</h3>
+                        <p><strong>Metadata Snippet:</strong> ${res.snippet}</p>
+                        <p><strong>Read Precise Information Related To Your Query:</strong> <a href="${res.link}" target="_blank">${res.link}</a></p>
+                    `;
+                } else {
+                    responseDiv.innerHTML = `<p>${res}</p>`;
+                }
+            } catch (error) {
+                responseDiv.innerHTML = `<p style="color: red;">An error occurred while fetching the response. Please try again.</p>`;
+            }
+
+            responseDiv.classList.add("visible");
+        });
+
+        // Simulate document indexing process
+        async function simulateIndexing() {
+            return new Promise(resolve => {
+                setTimeout(() => {
+                    resolve();
+                }, 300000);  // Simulate a 3-second delay for indexing
+            });
+        }
+    </script>
+</body>
+</html>
