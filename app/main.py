@@ -1,6 +1,8 @@
 from fastapi import FastAPI, Request
 from fastapi.middleware.cors import CORSMiddleware
+from fastapi.responses import FileResponse
 from scraper import es
+from fastapi.staticfiles import StaticFiles
 
 app = FastAPI()
 
@@ -13,9 +15,12 @@ app.add_middleware(
     allow_headers=["*"],
 )
 
+# Serve static files like HTML, CSS, JS
+app.mount("/static", StaticFiles(directory="static"), name="static")
+
 @app.get("/")
-def read_root():
-    return {"message": "Welcome to the Documentation Query API!"}
+def get_home():
+    return FileResponse("static/index.html")
 
 @app.get("/favicon.ico")
 async def favicon():
