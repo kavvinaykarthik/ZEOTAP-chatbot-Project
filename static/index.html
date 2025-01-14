@@ -157,78 +157,59 @@
                     <option value="lytics">Lytics</option>
                     <option value="zeotap">Zeotap</option>
                 </select>
-                
+
                 <button type="submit">Submit</button>
             </form>
-            <div id="response">
-                <p>Response will appear here...</p>
-            </div>
+
+            <div id="response"></div>
         </div>
     </div>
 
-    <div id="loading" class="visible">
-        Loading, please wait for 5 minutes while the documents are indexed...
-    </div>
+    <div id="loading">Loading...</div>
 
     <script>
-        const form = document.getElementById("queryForm");
-        const responseDiv = document.getElementById("response");
-        const chatContainer = document.getElementById("chatContainer");
-        const loadingDiv = document.getElementById("loading");
+        document.addEventListener('DOMContentLoaded', () => {
+            const chatContainer = document.getElementById("chatContainer");
+            const loadingIndicator = document.getElementById("loading");
+            const responseDiv = document.getElementById("response");
+            const queryForm = document.getElementById("queryForm");
 
-        window.addEventListener('load', async () => {
-            // Simulate indexing process with a delay
-            await simulateIndexing();
-
-            // After indexing, show the form and hide the loading message
-            loadingDiv.classList.remove("visible");
-            form.style.display = "flex";
             chatContainer.classList.add("loaded");
-        });
+            queryForm.style.display = "block";
 
-        form.addEventListener("submit", async (event) => {
-            event.preventDefault();
+            document.getElementById("queryForm").addEventListener("submit", async (event) => {
+                event.preventDefault();
 
-            const query = document.getElementById("queryInput").value;
-            const cdp = document.getElementById("cdpSelect").value;
+                const query = document.getElementById("queryInput").value;
+                const cdp = document.getElementById("cdpSelect").value;
 
-            responseDiv.classList.remove("visible");
-            responseDiv.innerHTML = `<p>Fetching response...</p>`;
+                loadingIndicator.classList.add("visible");
 
-            try {
-                const response = await fetch("http://127.0.0.1:8000/query/", {
+                const response = await fetch("https://your-render-app-url/query/", {
                     method: "POST",
-                    headers: { "Content-Type": "application/json" },
-                    body: JSON.stringify({ query, cdp }),
+                    headers: {
+                        "Content-Type": "application/json"
+                    },
+                    body: JSON.stringify({ query, cdp })
                 });
 
                 const data = await response.json();
-                const res = data.response;
 
-                if (res.title) {
+                loadingIndicator.classList.remove("visible");
+
+                if (data.response) {
                     responseDiv.innerHTML = `
-                        <h3>${res.title}</h3>
-                        <p><strong>Metadata Snippet:</strong> ${res.snippet}</p>
-                        <p><strong>Read Precise Information Related To Your Query:</strong> <a href="${res.link}" target="_blank">${res.link}</a></p>
+                        <h3>${data.response.title}</h3>
+                        <p>${data.response.snippet}</p>
+                        <a href="${data.response.link}" target="_blank">Read more</a>
                     `;
+                    responseDiv.classList.add("visible");
                 } else {
-                    responseDiv.innerHTML = `<p>${res}</p>`;
+                    responseDiv.innerHTML = "No relevant documentation found. Try refining your query.";
+                    responseDiv.classList.add("visible");
                 }
-            } catch (error) {
-                responseDiv.innerHTML = `<p style="color: red;">An error occurred while fetching the response. Please try again.</p>`;
-            }
-
-            responseDiv.classList.add("visible");
-        });
-
-        // Simulate document indexing process
-        async function simulateIndexing() {
-            return new Promise(resolve => {
-                setTimeout(() => {
-                    resolve();
-                }, 1000);  // Simulate a 3-second delay for indexing
             });
-        }
+        });
     </script>
 </body>
 </html>
