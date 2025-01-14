@@ -1,7 +1,7 @@
 from fastapi import FastAPI, Request
 from fastapi.middleware.cors import CORSMiddleware
 from fastapi.responses import FileResponse
-from scraper import es
+from app.scraper import es
 from fastapi.staticfiles import StaticFiles
 
 app = FastAPI()
