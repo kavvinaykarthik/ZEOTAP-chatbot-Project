@@ -1,6 +1,6 @@
 from fastapi import FastAPI, Request
 from fastapi.middleware.cors import CORSMiddleware
-from app.scraper import es
+from scraper import es
 
 app = FastAPI()
 
@@ -12,6 +12,15 @@ app.add_middleware(
     allow_methods=["*"],
     allow_headers=["*"],
 )
+
+@app.get("/")
+def read_root():
+    return {"message": "Welcome to the Documentation Query API!"}
+
+@app.get("/favicon.ico")
+async def favicon():
+    return {}
+
 @app.post("/query/")
 async def query(request: Request):
     data = await request.json()
