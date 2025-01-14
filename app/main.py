@@ -1,6 +1,6 @@
 from fastapi import FastAPI, Request
 from fastapi.middleware.cors import CORSMiddleware
-from scraper import es
+from app.scraper import es
 
 app = FastAPI()
 
