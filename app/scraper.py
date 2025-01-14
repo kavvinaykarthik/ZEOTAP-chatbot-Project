@@ -4,7 +4,10 @@ from elasticsearch import Elasticsearch
 from urllib.parse import urljoin  # For handling relative URLs
 
 # Initialize Elasticsearch
-es = Elasticsearch("http://localhost:9200")
+es = Elasticsearch(
+    "https://my-elasticsearch-project-c7a9cf.es.us-east-1.aws.elastic.cloud:443",
+    api_key="NF9yX1lwUUJoM2tOTnpBLUNUa186OVV4N1VrYmJUTENYb0R6b1hDdEFpUQ=="
+)
 
 # Function to scrape the documentation pages
 def scrape_docs(base_url):

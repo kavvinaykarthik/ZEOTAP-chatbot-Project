@@ -5,3 +5,4 @@ beautifulsoup4
 elasticsearch
 openai
 jinja2
+beautifulsoup4
